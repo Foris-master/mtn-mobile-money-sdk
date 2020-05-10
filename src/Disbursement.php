@@ -9,7 +9,7 @@
 namespace Foris\MoMoSdk;
 
 
-class Collection extends MoMoSdk
+class Disbursement extends MoMoSdk
 {
 
     private $api;
@@ -20,7 +20,7 @@ class Collection extends MoMoSdk
 
     public function __construct(array $config = array())
     {
-        $this->api = new Api("collection");
+        $this->api = new Api("disbursement");
         if (!isset($config["implicit_token"]) || $config["implicit_token"])
             $this->getAccesToken();
     }
@@ -40,13 +40,13 @@ class Collection extends MoMoSdk
     }
 
 
-    public function requestToPay($amount, $tel, $options = array())
+    public function transfer($amount, $tel, $options = array())
     {
         $id = $this->api->gen_uuid();
         $data = array(
             'amount' => $amount,
             "externalId" => $id,
-            'payer' => array(
+            'payee' => array(
                 'partyId' => $tel,
                 "partyIdType" => "MSISDN",
             )
@@ -54,7 +54,7 @@ class Collection extends MoMoSdk
         if (is_array($options))
             $data = array_merge($data, $options);
 
-        $rep = $this->api->requestToPay($data);
+        $rep = $this->api->transfer($data);
         $rep = $this->formatResponse($rep, "202");
         return array_merge($rep, array("externalId" => $id));
     }

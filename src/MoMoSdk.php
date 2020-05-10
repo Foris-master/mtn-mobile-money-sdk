@@ -11,7 +11,7 @@ namespace Foris\MoMoSdk;
 
 use GuzzleHttp\Psr7\Response;
 
-class MoMoSdk
+abstract class MoMoSdk
 {
 
     private $api;
@@ -20,75 +20,18 @@ class MoMoSdk
      */
     private $token;
 
-    public function __construct(array $config = array())
-    {
-        $this->api = new Api();
-        if (!isset($config["implicit_token"]) || $config["implicit_token"])
-            $this->getAccesToken();
-    }
 
-
-    public function getAccesToken()
-    {
-
-        $rep = $this->api->getToken();
-        $rep = $this->formatResponse($rep);
-        if ($rep["success"]) {
-            $this->token = $rep["body"]["access_token"];
-            $this->api->setToken($this->token);
-        }
-        return $rep;
-
-    }
-
-    private function formatResponse($response)
+    protected function formatResponse($response, $code = "200")
     {
         if (is_object($response) && $response instanceof Response) {
             $data = json_decode((string)$response->getBody(), true);
-            return array("success" => $response->getStatusCode() == "200", "body" => $data);
+            return array("success" => $response->getStatusCode() == $code, "body" => $data);
         } elseif (is_string($response)) {
             return array("success" => false, "body" => $response);
         } else {
             return array("success" => false, "body" => $response);
 
         }
-    }
-
-    public function requestToPay($amount, $tel, $options = array())
-    {
-        $id = $this->api->gen_uuid();
-        $data = array(
-            'amount' => $amount,
-            "externalId" => $id,
-            'payer' => array(
-                'partyId' => $tel,
-                "partyIdType" => "MSISDN",
-            )
-        );
-        if (is_array($options))
-            $data = array_merge($data, $options);
-
-        $rep = $this->api->requestToPay($data);
-
-        return $this->formatResponse($rep);
-    }
-
-    public function getTransaction($id)
-    {
-        $rep = $this->api->getTransaction($id);
-        return $this->formatResponse($rep);
-    }
-
-    public function getBalance()
-    {
-        $rep = $this->api->getBalance();
-        return $this->formatResponse($rep);
-    }
-
-    public function isAccountValid($tel)
-    {
-        $rep = $this->api->isAccountValid($tel);
-        return $this->formatResponse($rep);
     }
 
 

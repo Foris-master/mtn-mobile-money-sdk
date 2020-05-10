@@ -29,6 +29,11 @@ class Api
     const BASE_URL = "https://sandbox.momodeveloper.mtn.com";
     /**
      * The Query to run against the FileSystem
+     * @var String;
+     */
+    private $service;
+    /**
+     * The Query to run against the FileSystem
      * @var Client;
      */
     private $client;
@@ -55,9 +60,10 @@ class Api
      * @param string $userid
      * @param string $password
      */
-    public function __construct()
+    public function __construct($service = null)
     {
-        $this->primary_key = getenv("MOMO_COLLECTION_PRIMARY_KEY");
+        $this->service = $service;
+        $this->primary_key = getenv("MOMO_" . strtoupper($this->service) . "_PRIMARY_KEY");
         $this->callback_url = getenv("MOMO_CALLBACK_URL");
 
 
@@ -120,14 +126,17 @@ class Api
     private function setApiKeys()
     {
         $rep = $this->createApiUser();
-        if ($rep->getStatusCode() == "201") {
-            $rep = $this->createApiKey();
+        if ($rep instanceof Response) {
             if ($rep->getStatusCode() == "201") {
-                $rep = json_decode((string)$rep->getBody(), true);
-                $this->api_key = $rep["apiKey"];
-            }
+                $rep = $this->createApiKey();
+                if ($rep->getStatusCode() == "201") {
+                    $rep = json_decode((string)$rep->getBody(), true);
+                    $this->api_key = $rep["apiKey"];
+                }
 
+            }
         }
+
     }
 
     public function createApiUser()
@@ -184,7 +193,6 @@ class Api
             }
         }
 
-
         // POST method or GET method
         try {
             if (strtolower($httpMethod) === "post") {
@@ -221,7 +229,21 @@ class Api
             'json' => $b
         );
 
-        return $this->post('collection/v1_0/requesttopay', $options);
+        return $this->post($this->service . '/v1_0/requesttopay', $options);
+    }
+
+    public function transfer($data)
+    {
+        $b = $this->prepare($data);
+
+        $options = array(
+            'headers' => array(
+                'X-Reference-Id' => $b["externalId"],
+            ),
+            'json' => $b
+        );
+
+        return $this->post($this->service . '/v1_0/transfer', $options);
     }
 
     public function prepare($body)
@@ -232,7 +254,7 @@ class Api
             "externalId" => $id,
             "currency" => "EUR",
             "amount" => 0,
-            "payer" => array(
+            "payee" => array(
                 "partyIdType" => "MSISDN",
                 "partyId" => "string"
             ),
@@ -248,8 +270,8 @@ class Api
 
     public function getTransaction($id)
     {
-
-        return $this->get('collection/v1_0/requesttopay/' . $id);
+        $t = $this->service == 'collection' ? 'requesttopay' : 'transfer';
+        return $this->get($this->service . '/v1_0/' . $t . '/' . $id);
     }
 
     /**
@@ -274,7 +296,7 @@ class Api
             )
         );
 
-        return $this->post('collection/token/', $options);
+        return $this->post($this->service . '/token/', $options);
     }
 
     /**
@@ -288,12 +310,12 @@ class Api
     public function getBalance()
     {
 
-        return $this->get('collection/v1_0/account/balance');
+        return $this->get($this->service . '/v1_0/account/balance');
     }
 
     public function isAccountValid($tel)
     {
-        return $this->get('collection/v1_0/accountholder/msisdn/' . $tel . '/active');
+        return $this->get($this->service . '/v1_0/accountholder/msisdn/' . $tel . '/active');
     }
 
 

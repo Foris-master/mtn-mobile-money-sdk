@@ -2,41 +2,42 @@
 
 namespace League\Skeleton\Test;
 
-use Foris\MoMoSdk\Collection;
+use Foris\MoMoSdk\Disbursement;
 
-class MoMoSdkCollectionTest extends \PHPUnit_Framework_TestCase
+class MoMoSdkDisbursementTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var Collection
+     * @var Disbursement
      */
-    private $momo_collection;
+    private $momo_disbursement;
 
     public function setUp()
     {
         //only for unit test purpose
-        putenv('MOMO_COLLECTION_PRIMARY_KEY=your primary key here');
+        putenv('MOMO_DISBURSEMENT_PRIMARY_KEY=your primary key here');
         putenv('MOMO_CALLBACK_URL=https://myawesome.callback.com');
 
-        $this->momo_collection = new Collection();
+        $this->momo_disbursement = new Disbursement();
         parent::setUp();
     }
 
     public function testGetAccessToken()
     {
 
-        $res = $this->momo_collection->getAccesToken();
+        $res = $this->momo_disbursement->getAccesToken();
         $this->assertTrue($res["success"]);
         $this->assertArrayHasKey("access_token", $res["body"]);
         var_dump($res["body"]);
     }
 
-    public function testRequestToPay()
+    public function testTransfer()
     {
 //        $this->assertTrue(true);
-        $res = $this->momo_collection->requestToPay(200, '677777777');
+        $res = $this->momo_disbursement->transfer(200, '677777777');
         $this->assertArrayHasKey("externalId", $res);
+//        var_dump($res);
         $this->assertTrue($res["success"]);
-        $res = $this->momo_collection->getTransaction($res["externalId"]);
+        $res = $this->momo_disbursement->getTransaction($res["externalId"]);
         $this->assertTrue($res["success"]);
         $this->assertArrayHasKey("body", $res);
         $this->assertTrue($res["body"]["status"] == "SUCCESSFUL");
@@ -45,7 +46,8 @@ class MoMoSdkCollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testGetBalance()
     {
-        $res = $this->momo_collection->getBalance();
+        $res = $this->momo_disbursement->getBalance();
+        var_dump($res);
         $this->assertTrue($res["success"]);
         $this->assertArrayHasKey("availableBalance", $res["body"]);
         var_dump($res["body"]);
@@ -53,7 +55,7 @@ class MoMoSdkCollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testIsAccountValid()
     {
-        $res = $this->momo_collection->isAccountValid("677777777");
+        $res = $this->momo_disbursement->isAccountValid("677777777");
         var_dump($res);
         $this->assertTrue($res["success"]);
         $this->assertArrayHasKey("result", $res["body"]);
