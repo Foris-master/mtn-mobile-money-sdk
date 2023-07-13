@@ -38,6 +38,19 @@ class Api
      */
     private $client;
     /**
+     * @var bool or null
+     */
+    private $is_sandbox;
+   
+    /**
+     * @var string or null
+     */
+    private $api_user;
+    /**
+     * @var string or null
+     */
+    private $api_key;
+    /**
      * @var string or null
      */
     private $token;
@@ -53,6 +66,18 @@ class Api
      * @var string or null
      */
     private $primary_key;
+    /**
+     * @var string or null
+     */
+    private $momo_env;
+    /**
+     * @var string or null
+     */
+    private $momo_currency;
+    /**
+     * @var string or null
+     */
+    private $callback_host;
 
 
     /**
@@ -63,15 +88,25 @@ class Api
     public function __construct($service = null)
     {
         $this->service = $service;
+        
         $this->primary_key = getenv("MOMO_" . strtoupper($this->service) . "_PRIMARY_KEY");
+        
         $this->callback_url = getenv("MOMO_CALLBACK_URL");
 
+        $this->momo_currency = getenv("MOMO_CURRENCY");
+        $this->callback_host = getenv("MOMO_CALLBACK_HOST");
 
-        $env = getenv('SANDBOX');
-        $this->is_sandbox = !(isset($env) && in_array($env, array(true, 'true', 1)));
+
+
+        $env = getenv('MOMO_SDK_ENV');
+        
+        // $this->is_sandbox = !(isset($env) && in_array($env, array(true, 'true', 1))) ;
+        $this->is_sandbox = !isset($env) || $env != 'prod'; ;
         if ($this->is_sandbox) {
             $this->api_user = $this->gen_uuid();
             $this->x_reference_id = $this->api_user;
+            
+
             $this->client = new Client(array(
                 'base_uri' => self::BASE_SANDBOX_URL,
                 'headers' => array(
@@ -85,13 +120,21 @@ class Api
             $this->setApiKeys();
 
         } else {
-            $this->api_user = getenv("MOMO_API_USER");
-            $this->api_key = getenv("MOMO_APP_KEY");
+
+            
+            $this->api_user = getenv("MOMO_" . strtoupper($this->service) . "_API_USER");
+            $this->api_key = getenv("MOMO_" . strtoupper($this->service) . "_APP_KEY");
+            $this->momo_env = getenv("MOMO_ENV");
+            
+         
+
             $this->client = new Client(array(
                 'base_uri' => self::BASE_URL,
                 'headers' => array(
                     'Ocp-Apim-Subscription-Key' => $this->primary_key,
-                    'X-Reference-Id' => $this->x_reference_id,
+                    // 'X-Reference-Id' => $this->api_user,
+                    'X-Target-Environment' => $this->momo_env ,
+
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json'
                 )
@@ -142,7 +185,7 @@ class Api
     public function createApiUser()
     {
         $body = array(
-            'providerCallbackHost' => $this->callback_url
+            'providerCallbackHost' => $this->callback_host
         );
         $option = array(
             'headers' => array(
@@ -196,6 +239,7 @@ class Api
         // POST method or GET method
         try {
             if (strtolower($httpMethod) === "post") {
+                var_dump($options);
 
                 /** @var Response $response */
                 $response = $this->client->request('post', $endpoint, $options);
@@ -239,7 +283,10 @@ class Api
         $options = array(
             'headers' => array(
                 'X-Reference-Id' => $b["externalId"],
+                'Authorization' => 'Bearer '. $this->token,
+
             ),
+            // 'auth'=> [$this->api_user,$this->api_key],
             'json' => $b
         );
 
@@ -252,7 +299,7 @@ class Api
         $id = "MOMO_SDK_0" . rand(100000, 900000) . "_00" . rand(10000, 90000);
         $b = array(
             "externalId" => $id,
-            "currency" => "EUR",
+            "currency" => $this->momo_currency ,
             "amount" => 0,
             "payee" => array(
                 "partyIdType" => "MSISDN",

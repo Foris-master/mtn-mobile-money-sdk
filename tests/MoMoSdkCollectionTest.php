@@ -3,20 +3,30 @@
 namespace League\Skeleton\Test;
 
 use Foris\MoMoSdk\Collection;
+use PHPUnit\Framework\TestCase;
 
-class MoMoSdkCollectionTest extends \PHPUnit_Framework_TestCase
+
+class MoMoSdkCollectionTest extends TestCase
 {
     /**
      * @var Collection
      */
     private $momo_collection;
 
-    public function setUp()
+    public function setUp(): void
     {
         //only for unit test purpose
+        // putenv('MOMO_COLLECTION_PRIMARY_KEY=your primary key here');
+        // putenv('MOMO_CALLBACK_URL=https://myawesome.callback.com');
+
         putenv('MOMO_COLLECTION_PRIMARY_KEY=your primary key here');
         putenv('MOMO_CALLBACK_URL=https://myawesome.callback.com');
-
+        putenv('MOMO_COLLECTION_API_USER=Your appuser');
+        putenv('MOMO_COLLECTION_APP_KEY=Your_APP_KEY');
+        putenv('MOMO_CALLBACK_HOST=azz.com');
+        putenv('MOMO_ENV=mtncameroon');
+        putenv('MOMO_SDK_ENV=prod');
+        putenv('MOMO_CURRENCY=XAF');
         $this->momo_collection = new Collection();
         parent::setUp();
     }

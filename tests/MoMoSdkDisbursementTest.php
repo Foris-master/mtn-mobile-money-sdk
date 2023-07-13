@@ -3,23 +3,34 @@
 namespace League\Skeleton\Test;
 
 use Foris\MoMoSdk\Disbursement;
+use PHPUnit\Framework\TestCase;
 
-class MoMoSdkDisbursementTest extends \PHPUnit_Framework_TestCase
+class MoMoSdkDisbursementTest extends TestCase
 {
     /**
      * @var Disbursement
      */
     private $momo_disbursement;
 
-    public function setUp()
-    {
-        //only for unit test purpose
-        putenv('MOMO_DISBURSEMENT_PRIMARY_KEY=your primary key here');
-        putenv('MOMO_CALLBACK_URL=https://myawesome.callback.com');
+    public function setUp(): void
+{
+    // Only for unit test purpose
+    // putenv('MOMO_DISBURSEMENT_PRIMARY_KEY=your primary key here');
+    // putenv('MOMO_CALLBACK_URL=https://myawesome.callback.com');
 
-        $this->momo_disbursement = new Disbursement();
-        parent::setUp();
-    }
+    putenv('MOMO_DISBURSEMENT_PRIMARY_KEY=your primary key here');
+    putenv('MOMO_CALLBACK_URL=https://myawesome.callback.com');
+    putenv('MOMO_DISBURSEMENT_API_USER=Your appuser');
+    putenv('MOMO_DISBURSEMENT_APP_KEY=Your_APP_KEY');
+    putenv('MOMO_CALLBACK_HOST=azz.com');
+    putenv('MOMO_ENV=mtncameroon');
+    putenv('MOMO_SDK_ENV=prod');
+    putenv('MOMO_CURRENCY=XAF');
+
+    $this->momo_disbursement = new Disbursement();
+    parent::setUp();
+}
+
 
     public function testGetAccessToken()
     {

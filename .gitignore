@@ -33,6 +33,9 @@ build
 composer.lock
 docs
 vendor
+tests.php
+testsDis.php
+.env
 
 index.php
 .idea/
