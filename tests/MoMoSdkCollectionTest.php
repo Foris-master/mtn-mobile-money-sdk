@@ -27,6 +27,7 @@ class MoMoSdkCollectionTest extends TestCase
         putenv('MOMO_ENV=mtncameroon');
         putenv('MOMO_SDK_ENV=prod');
         putenv('MOMO_CURRENCY=XAF');
+        putenv('MOMO_PROD_URL=htts://azdsdd.mtn.com');
         $this->momo_collection = new Collection();
         parent::setUp();
     }

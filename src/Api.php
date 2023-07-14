@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Evaris
@@ -23,10 +24,10 @@ use GuzzleHttp\Psr7\Response;
 class Api
 {
     /**
-     * Orange Money  API Base url
+     * Mtn Money  API Base url
      */
     const BASE_SANDBOX_URL = "https://sandbox.momodeveloper.mtn.com";
-    const BASE_URL = "https://sandbox.momodeveloper.mtn.com";
+    public static $BASE_URL = "https://ericssonbasicapi1.azure-api.net";
     /**
      * The Query to run against the FileSystem
      * @var String;
@@ -41,7 +42,7 @@ class Api
      * @var bool or null
      */
     private $is_sandbox;
-   
+
     /**
      * @var string or null
      */
@@ -88,24 +89,26 @@ class Api
     public function __construct($service = null)
     {
         $this->service = $service;
-        
+
         $this->primary_key = getenv("MOMO_" . strtoupper($this->service) . "_PRIMARY_KEY");
-        
+
         $this->callback_url = getenv("MOMO_CALLBACK_URL");
 
         $this->momo_currency = getenv("MOMO_CURRENCY");
         $this->callback_host = getenv("MOMO_CALLBACK_HOST");
+        //   $this->BASE_URL =
+        self::$BASE_URL = getenv("MOMO_PROD_URL") ?? "https://ericssonbasicapi1.azure-api.net";
 
 
 
         $env = getenv('MOMO_SDK_ENV');
-        
+
         // $this->is_sandbox = !(isset($env) && in_array($env, array(true, 'true', 1))) ;
-        $this->is_sandbox = !isset($env) || $env != 'prod'; ;
+        $this->is_sandbox = !isset($env) || $env != 'prod';
         if ($this->is_sandbox) {
             $this->api_user = $this->gen_uuid();
             $this->x_reference_id = $this->api_user;
-            
+
 
             $this->client = new Client(array(
                 'base_uri' => self::BASE_SANDBOX_URL,
@@ -118,36 +121,36 @@ class Api
                 )
             ));
             $this->setApiKeys();
-
         } else {
 
-            
+
             $this->api_user = getenv("MOMO_" . strtoupper($this->service) . "_API_USER");
             $this->api_key = getenv("MOMO_" . strtoupper($this->service) . "_APP_KEY");
             $this->momo_env = getenv("MOMO_ENV");
-            
-         
+
+
 
             $this->client = new Client(array(
-                'base_uri' => self::BASE_URL,
+                'base_uri' => self::$BASE_URL,
                 'headers' => array(
                     'Ocp-Apim-Subscription-Key' => $this->primary_key,
                     // 'X-Reference-Id' => $this->api_user,
-                    'X-Target-Environment' => $this->momo_env ,
+                    'X-Target-Environment' => $this->momo_env,
 
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json'
                 )
             ));
         }
-
     }
 
     function gen_uuid()
     {
-        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             // 32 bits for "time_low"
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
 
             // 16 bits for "time_mid"
             mt_rand(0, 0xffff),
@@ -162,7 +165,9 @@ class Api
             mt_rand(0, 0x3fff) | 0x8000,
 
             // 48 bits for "node"
-            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
         );
     }
 
@@ -176,10 +181,8 @@ class Api
                     $rep = json_decode((string)$rep->getBody(), true);
                     $this->api_key = $rep["apiKey"];
                 }
-
             }
         }
-
     }
 
     public function createApiUser()
@@ -217,7 +220,7 @@ class Api
 
         $options = is_array($options) ? $options : array();
         if ($this->token) {
-//            for php 7.4 only
+            //            for php 7.4 only
             /*$ot=array(
                 'headers'=>array(
                     'Authorization' => 'Bearer ' . $this->token,
@@ -239,14 +242,11 @@ class Api
         // POST method or GET method
         try {
             if (strtolower($httpMethod) === "post") {
-                var_dump($options);
 
                 /** @var Response $response */
                 $response = $this->client->request('post', $endpoint, $options);
-
             } else {
                 $response = $this->client->get($endpoint, $options);
-
             }
             return $response;
         } catch (GuzzleException $e) {
@@ -254,7 +254,6 @@ class Api
         } catch (Exception $exception) {
             return $exception->getMessage();
         }
-
     }
 
     private function createApiKey()
@@ -265,11 +264,14 @@ class Api
     public function requestToPay($data)
     {
         $b = $this->prepare($data);
+        $calb = isset($data["callback_url"]) ? ["X-Callback-Url" => $data["callback_url"]] : [];
 
         $options = array(
-            'headers' => array(
+            'headers' => array_merge(array(
                 'X-Reference-Id' => $b["externalId"],
-            ),
+                "X-Callback-Url" => $this->callback_url,
+                'Authorization' => 'Bearer ' . $this->token,
+            ), $calb),
             'json' => $b
         );
 
@@ -279,18 +281,16 @@ class Api
     public function transfer($data)
     {
         $b = $this->prepare($data);
-
+        $calb = isset($data["callback_url"]) ? ["X-Callback-Url" => $data["callback_url"]] : [];
         $options = array(
-            'headers' => array(
+            'headers' => array_merge(array(
                 'X-Reference-Id' => $b["externalId"],
-                'Authorization' => 'Bearer '. $this->token,
-
-            ),
-            // 'auth'=> [$this->api_user,$this->api_key],
+                "X-Callback-Url" => $this->callback_url,
+                'Authorization' => 'Bearer ' . $this->token,
+            ), $calb),
             'json' => $b
         );
-
-        return $this->post($this->service . '/v1_0/transfer', $options);
+       return $this->post($this->service . '/v1_0/transfer', $options);
     }
 
     public function prepare($body)
@@ -299,7 +299,7 @@ class Api
         $id = "MOMO_SDK_0" . rand(100000, 900000) . "_00" . rand(10000, 90000);
         $b = array(
             "externalId" => $id,
-            "currency" => $this->momo_currency ,
+            "currency" => $this->momo_currency,
             "amount" => 0,
             "payee" => array(
                 "partyIdType" => "MSISDN",
@@ -310,8 +310,7 @@ class Api
         );
         $b = array_merge($b, $body);
 
-        /* var_dump($b);
-         die();*/
+        //  die();
         return $b;
     }
 
@@ -364,6 +363,4 @@ class Api
     {
         return $this->get($this->service . '/v1_0/accountholder/msisdn/' . $tel . '/active');
     }
-
-
 }

@@ -47,7 +47,7 @@ class Collection extends MoMoSdk
             'amount' => $amount,
             "externalId" => $id,
             'payer' => array(
-                'partyId' => $tel,
+                'partyId' => str_replace("+","", $tel),  
                 "partyIdType" => "MSISDN",
             )
         );

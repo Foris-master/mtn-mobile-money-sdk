@@ -21,11 +21,13 @@ class MoMoSdkDisbursementTest extends TestCase
     putenv('MOMO_DISBURSEMENT_PRIMARY_KEY=your primary key here');
     putenv('MOMO_CALLBACK_URL=https://myawesome.callback.com');
     putenv('MOMO_DISBURSEMENT_API_USER=Your appuser');
-    putenv('MOMO_DISBURSEMENT_APP_KEY=Your_APP_KEY');
-    putenv('MOMO_CALLBACK_HOST=azz.com');
+    putenv('MOMO_DISBURSEMENT_APP_KEY=Your APP_KEY');
+    putenv('MOMO_CALLBACK_HOST=https://example.com');
     putenv('MOMO_ENV=mtncameroon');
     putenv('MOMO_SDK_ENV=prod');
     putenv('MOMO_CURRENCY=XAF');
+    putenv('MOMO_PROD_URL=htts://azdsdd.mtn.com');
+
 
     $this->momo_disbursement = new Disbursement();
     parent::setUp();
