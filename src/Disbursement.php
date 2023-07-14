@@ -47,7 +47,7 @@ class Disbursement extends MoMoSdk
             'amount' => $amount,
             "externalId" => $id,
             'payee' => array(
-                'partyId' => $tel,
+                'partyId' =>  str_replace("+","", $tel),
                 "partyIdType" => "MSISDN",
             )
         );

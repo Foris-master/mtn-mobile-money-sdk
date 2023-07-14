@@ -18,7 +18,6 @@ $ composer require foris-master/mtn-mobile-money-sdk
 
 -  `MOMO_CURRENCY`  Setup  the currency  `value`: EUR
 
-
 - `MOMO_SDK_ENV` Configures the value of the SDK environment `value`: sandbox  or  prod  
 - `MOMO_ENV` variable to specify the application environment `value`: mtncameroon
 - `MOMO_CALLBACK_HOST`Sets the callback host for MTN API notifications `value`:https://example.com  
