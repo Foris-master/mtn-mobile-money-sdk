@@ -97,7 +97,14 @@ class Api
         $this->momo_currency = getenv("MOMO_CURRENCY");
         $this->callback_host = getenv("MOMO_CALLBACK_HOST");
         //   $this->BASE_URL =
-        self::$BASE_URL = getenv("MOMO_PROD_URL") ?? "https://ericssonbasicapi1.azure-api.net";
+        // self::$BASE_URL = getenv("MOMO_PROD_URL") ?? "https://ericssonbasicapi1.azure-api.net";
+        $bu = getenv("MOMO_PROD_URL");
+        if ($bu) {
+            self::$BASE_URL = $bu;
+        } else {
+            self::$BASE_URL="https://ericssonbasicapi1.azure-api.net";
+        }
+
 
 
 
@@ -290,7 +297,7 @@ class Api
             ), $calb),
             'json' => $b
         );
-       return $this->post($this->service . '/v1_0/transfer', $options);
+        return $this->post($this->service . '/v1_0/transfer', $options);
     }
 
     public function prepare($body)
